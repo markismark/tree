@@ -1,9 +1,6 @@
 package tree
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func Test_print(t *testing.T) {
 	b := true
@@ -12,5 +9,5 @@ func Test_print(t *testing.T) {
 	Print(d64)
 	var f64 float64 = 12.5
 	Print(f64)
-	fmt.Printf("%T\n", &d64)
+	Print(&f64)
 }
