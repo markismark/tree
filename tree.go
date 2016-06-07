@@ -42,6 +42,8 @@ func casToNode(ob interface{}, deep int) *Node {
 		n.FieldValue = fmt.Sprintf("%p", ob)
 	case "struct":
 		n.FiledType = reflect.TypeOf(ob).String()
+	case "complex64", "complex128":
+		n.FieldValue = fmt.Sprintf("%v", ob)
 	}
 	return n
 }
