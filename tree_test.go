@@ -13,7 +13,7 @@ func Test_print(t *testing.T) {
 	var f64 float64 = 12.5
 	Print(f64)
 	Print(&f64)
-	fmt.Println(f64)
+	fmt.Printf("%t\n", &f64)
 	x := 101 + 45i
 	Print(x)
 }
