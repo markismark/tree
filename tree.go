@@ -6,16 +6,16 @@ import (
 )
 
 type Node struct {
-	Children   []Node
+	Children   []*Node
 	FiledType  string
-	FieldName  string
+	FieldName  *Node
 	FieldValue string
 	Deep       int
 }
 
 func Print(ob interface{}) {
 	n := casToNode(reflect.ValueOf(ob), 1)
-	fmt.Printf("%#v\n", n)
+	fmt.Printf("%#v\n", n.Children[0].FieldName)
 }
 
 func casToNode(v reflect.Value, deep int) *Node {
@@ -38,18 +38,23 @@ func casToNode(v reflect.Value, deep int) *Node {
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
 		n.FiledType = "*" + v.Elem().Kind().String()
-		n.FieldName = fmt.Sprintf("Ox%x", v.Pointer())
+		n.FieldName = casToNode(reflect.ValueOf(v.Pointer()), 1)
 	case "struct":
 		//n.FiledType = reflect.TypeOf(ob).String()
 	case "complex64", "complex128":
 		n.FieldValue = fmt.Sprintf("%v", v)
 	case "map":
-		// if !reflect.ValueOf(ob).IsNil() {
-		// 	keys := reflect.ValueOf(ob).MapKeys()\
-		//     for key := range keys{
-
-		//     }
-		// }
+		if !v.IsNil() {
+			keys := v.MapKeys()
+			n.Children = make([]*Node, len(keys))
+			for i, key := range keys {
+				kv := v.MapIndex(key)
+				kn := casToNode(kv, deep+1)
+				kn.FieldName = casToNode(key, 1)
+				n.Children[i] = kn
+				i++
+			}
+		}
 	}
 	return n
 }
