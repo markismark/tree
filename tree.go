@@ -11,6 +11,7 @@ type Node struct {
 	FieldName  string
 	FieldValue string
 	Deep       int
+	IsNil      bool
 }
 
 func Print(ob interface{}) {
@@ -31,15 +32,13 @@ func casToNode(v reflect.Value, deep int) Node {
 		}
 	case "string":
 		n.FieldValue = v.String()
-	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr":
 		n.FieldValue = fmt.Sprintf("%d", v)
 	case "float32", "float64":
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
 		n.FiledType = "*" + v.Elem().Kind().String()
 		n.FieldValue = fmt.Sprintf("%x", v.Pointer())
-	case "struct":
-		//n.FiledType = reflect.TypeOf(ob).String()
 	case "complex64", "complex128":
 		n.FieldValue = fmt.Sprintf("%v", v)
 	case "map":
@@ -53,6 +52,24 @@ func casToNode(v reflect.Value, deep int) Node {
 				n.Children[i] = kn
 				i++
 			}
+		} else {
+			n.IsNil = true
+		}
+	case "struct":
+		n.FiledType = v.Type().String()
+		n.Children = make([]Node, v.NumField())
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			kn := casToNode(f, deep+1)
+			kn.FieldName = v.Type().Field(i).Name
+			n.Children[i] = kn
+		}
+	case "array", "slice":
+		length := v.Len()
+		n.Children = make([]Node, length)
+		for i := 0; i < length; i++ {
+			kn := casToNode(v.Index(i), deep+1)
+			n.Children[i] = kn
 		}
 	}
 	return n
