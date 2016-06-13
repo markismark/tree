@@ -3,6 +3,12 @@ package tree
 import (
 	"fmt"
 	"reflect"
+	"strings"
+)
+
+var (
+	deepStr  = "    "
+	commaStr = ","
 )
 
 type Node struct {
@@ -16,7 +22,7 @@ type Node struct {
 
 func Print(ob interface{}) {
 	n := casToNode(reflect.ValueOf(ob), 1)
-	fmt.Printf("%#v\n", n)
+	print(n)
 }
 
 func casToNode(v reflect.Value, deep int) Node {
@@ -73,6 +79,28 @@ func casToNode(v reflect.Value, deep int) Node {
 		}
 	}
 	return n
+}
+
+func print(node Node) {
+	switch node.FiledType {
+	case "string", "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
+		fmt.Printf("%s%s(%s)\n", strings.Repeat(deepStr, node.Deep-1), node.FiledType, node.FieldValue)
+	case "array", "slice":
+		if len(node.Children) == 0 {
+			fmt.Printf("%s[]\n", strings.Repeat(deepStr, node.Deep-1))
+		} else {
+			fmt.Printf("%s[\n", strings.Repeat(deepStr, node.Deep-1))
+			printNodeChildren(node.Children)
+			fmt.Printf("%s]\n", strings.Repeat(deepStr, node.Deep-1))
+		}
+
+	}
+}
+
+func printNodeChildren(nodes []Node) {
+	for _, node := range nodes {
+		print(node)
+	}
 }
 
 func keyToString(key reflect.Value) string {
