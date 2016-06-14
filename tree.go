@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	deepStr  = "    "
+	deepStr  = "  "
 	commaStr = ","
 )
 
@@ -45,11 +45,12 @@ func casToNode(v reflect.Value, deep int) Node {
 	case "float32", "float64":
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
-		n.FiledType = "*" + v.Elem().Kind().String()
+		n.FiledRealType = "*" + v.Elem().Kind().String()
 		n.FieldValue = fmt.Sprintf("%x", v.Pointer())
 	case "complex64", "complex128":
 		n.FieldValue = fmt.Sprintf("%v", v)
 	case "map":
+		n.FiledRealType = v.Type().String()
 		if !v.IsNil() {
 			keys := v.MapKeys()
 			n.Children = make([]Node, len(keys))
@@ -86,8 +87,12 @@ func casToNode(v reflect.Value, deep int) Node {
 func print(node Node) {
 
 	switch node.FiledType {
-	case "string", "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
 		fmt.Printf("%s(%s)", node.FiledType, node.FieldValue)
+	case "string":
+		fmt.Printf("%s(\"%s\")", node.FiledType, node.FieldValue)
+	case "ptr":
+		fmt.Printf("%s(%s)", node.FiledRealType, node.FieldValue)
 	case "array", "slice":
 		if len(node.Children) == 0 {
 			fmt.Print("[]\n")
@@ -104,18 +109,24 @@ func print(node Node) {
 			}
 			fmt.Printf("%s]", strings.Repeat(deepStr, node.Deep-1))
 		}
-	case "struct":
-		fmt.Print("{\n")
+	case "struct", "map":
+
 		length := len(node.Children)
-		for i, cnode := range node.Children {
-			fmt.Printf("%s%s:", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
-			print(cnode)
-			if i <= length-2 {
-				fmt.Printf(commaStr)
+		if length == 0 {
+			fmt.Printf("{}(%s)", node.FiledRealType)
+		} else {
+			fmt.Print("{\n")
+			for i, cnode := range node.Children {
+				fmt.Printf("%s%s:", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
+				print(cnode)
+				if i <= length-2 {
+					fmt.Printf(commaStr)
+				}
+				fmt.Printf("\n")
 			}
-			fmt.Printf("\n")
+			fmt.Printf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType)
 		}
-		fmt.Printf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType)
+
 	}
 }
 
