@@ -12,22 +12,24 @@ var (
 )
 
 type Node struct {
-	Children   []Node
-	FiledType  string
-	FieldName  string
-	FieldValue string
-	Deep       int
-	IsNil      bool
+	Children      []Node
+	FiledType     string
+	FiledRealType string
+	FieldName     string
+	FieldValue    string
+	Deep          int
+	IsNil         bool
 }
 
 func Print(ob interface{}) {
 	n := casToNode(reflect.ValueOf(ob), 1)
 	print(n)
+	fmt.Println("")
 }
 
 func casToNode(v reflect.Value, deep int) Node {
 	t := v.Kind().String()
-	n := Node{FiledType: t, Deep: deep}
+	n := Node{FiledType: t, Deep: deep, FiledRealType: t}
 	switch t {
 	case "bool":
 		b := v.Bool()
@@ -62,7 +64,7 @@ func casToNode(v reflect.Value, deep int) Node {
 			n.IsNil = true
 		}
 	case "struct":
-		n.FiledType = v.Type().String()
+		n.FiledRealType = v.Type().String()
 		n.Children = make([]Node, v.NumField())
 		for i := 0; i < v.NumField(); i++ {
 			f := v.Field(i)
@@ -82,24 +84,38 @@ func casToNode(v reflect.Value, deep int) Node {
 }
 
 func print(node Node) {
+
 	switch node.FiledType {
 	case "string", "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
-		fmt.Printf("%s%s(%s)\n", strings.Repeat(deepStr, node.Deep-1), node.FiledType, node.FieldValue)
+		fmt.Printf("%s(%s)", node.FiledType, node.FieldValue)
 	case "array", "slice":
 		if len(node.Children) == 0 {
-			fmt.Printf("%s[]\n", strings.Repeat(deepStr, node.Deep-1))
+			fmt.Print("[]\n")
 		} else {
-			fmt.Printf("%s[\n", strings.Repeat(deepStr, node.Deep-1))
-			printNodeChildren(node.Children)
-			fmt.Printf("%s]\n", strings.Repeat(deepStr, node.Deep-1))
+			fmt.Print("[\n")
+			length := len(node.Children)
+			for i, cnode := range node.Children {
+				fmt.Printf("%s", strings.Repeat(deepStr, node.Deep))
+				print(cnode)
+				if i <= length-2 {
+					fmt.Printf(commaStr)
+				}
+				fmt.Printf("\n")
+			}
+			fmt.Printf("%s]", strings.Repeat(deepStr, node.Deep-1))
 		}
-
-	}
-}
-
-func printNodeChildren(nodes []Node) {
-	for _, node := range nodes {
-		print(node)
+	case "struct":
+		fmt.Print("{\n")
+		length := len(node.Children)
+		for i, cnode := range node.Children {
+			fmt.Printf("%s%s:", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
+			print(cnode)
+			if i <= length-2 {
+				fmt.Printf(commaStr)
+			}
+			fmt.Printf("\n")
+		}
+		fmt.Printf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType)
 	}
 }
 
