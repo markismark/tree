@@ -14,7 +14,8 @@ func Test_print(t *testing.T) {
 	// m["sex"] = "man"
 	// Print(m)
 	st := Mystruct{Name: "jim", Age: 44, sex: "man"}
-	Print(st)
+	Print(&st)
+	//fmt.Printf("%#v", &st)
 	// ar := [5]int{1, 3, 7, 9, 11}
 	// Print(ar)
 	// sp := []string{"啊哈", "哈哈"}
@@ -27,8 +28,8 @@ func Test_print(t *testing.T) {
 	// }
 	// Print(arr)
 
-	star := make([]Mystruct, 2)
-	star[0] = Mystruct{Name: "jim", Age: 12, sex: "boy"}
-	star[1] = Mystruct{Name: "Lucy", Age: 13, sex: "girl"}
-	Print(star)
+	// star := make([]Mystruct, 2)
+	// star[0] = Mystruct{Name: "jim", Age: 12, sex: "boy"}
+	// star[1] = Mystruct{Name: "Lucy", Age: 13, sex: "girl"}
+	// Print(star)
 }

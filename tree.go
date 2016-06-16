@@ -45,8 +45,11 @@ func casToNode(v reflect.Value, deep int) Node {
 	case "float32", "float64":
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
-		n.FiledRealType = "*" + v.Elem().Kind().String()
-		n.FieldValue = fmt.Sprintf("%x", v.Pointer())
+		n.FiledRealType = v.Type().String()
+		pn := casToNode(v.Elem(), deep)
+		n.Children = pn.Children
+		n.FieldValue = pn.FieldValue
+		n.FiledType = pn.FiledType
 	case "complex64", "complex128":
 		n.FieldValue = fmt.Sprintf("%v", v)
 	case "map":
