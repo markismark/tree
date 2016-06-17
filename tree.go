@@ -21,13 +21,23 @@ type Node struct {
 	IsNil         bool
 }
 
-func Print(ob interface{}) {
-	n := casToNode(reflect.ValueOf(ob), 1)
-	print(n)
-	fmt.Println("")
+type pp struct {
+	dataNode *Node
+	ptrs     []uintptr
 }
 
-func casToNode(v reflect.Value, deep int) Node {
+func Print(ob interface{}) {
+	p := &pp{}
+	p.ptrs = make([]uintptr, 0)
+	n := p.casToNode(reflect.ValueOf(ob), 1)
+	p.dataNode = &n
+	p.print()
+	fmt.Println("")
+	fmt.Println(p.ptrs)
+
+}
+
+func (this *pp) casToNode(v reflect.Value, deep int) Node {
 	t := v.Kind().String()
 	n := Node{FiledType: t, Deep: deep, FiledRealType: t}
 	switch t {
@@ -45,11 +55,18 @@ func casToNode(v reflect.Value, deep int) Node {
 	case "float32", "float64":
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
-		n.FiledRealType = v.Type().String()
-		pn := casToNode(v.Elem(), deep)
-		n.Children = pn.Children
-		n.FieldValue = pn.FieldValue
-		n.FiledType = pn.FiledType
+		vptr := v.Pointer()
+		if ptrInArray(vptr, this.ptrs) {
+
+		} else {
+			this.ptrs = append(this.ptrs, vptr)
+			n.FiledRealType = v.Type().String()
+			pn := this.casToNode(v.Elem(), deep)
+			n.Children = pn.Children
+			n.FieldValue = pn.FieldValue
+			n.FiledType = pn.FiledType
+		}
+
 	case "complex64", "complex128":
 		n.FieldValue = fmt.Sprintf("%v", v)
 	case "map":
@@ -59,7 +76,7 @@ func casToNode(v reflect.Value, deep int) Node {
 			n.Children = make([]Node, len(keys))
 			for i, key := range keys {
 				kv := v.MapIndex(key)
-				kn := casToNode(kv, deep+1)
+				kn := this.casToNode(kv, deep+1)
 				kn.FieldName = keyToString(key)
 				n.Children[i] = kn
 				i++
@@ -72,7 +89,7 @@ func casToNode(v reflect.Value, deep int) Node {
 		n.Children = make([]Node, v.NumField())
 		for i := 0; i < v.NumField(); i++ {
 			f := v.Field(i)
-			kn := casToNode(f, deep+1)
+			kn := this.casToNode(f, deep+1)
 			kn.FieldName = v.Type().Field(i).Name
 			n.Children[i] = kn
 		}
@@ -80,14 +97,17 @@ func casToNode(v reflect.Value, deep int) Node {
 		length := v.Len()
 		n.Children = make([]Node, length)
 		for i := 0; i < length; i++ {
-			kn := casToNode(v.Index(i), deep+1)
+			kn := this.casToNode(v.Index(i), deep+1)
 			n.Children[i] = kn
 		}
 	}
 	return n
 }
+func (this *pp) print() {
+	this.printNode(*this.dataNode)
+}
 
-func print(node Node) {
+func (this *pp) printNode(node Node) {
 
 	switch node.FiledType {
 	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
@@ -104,7 +124,7 @@ func print(node Node) {
 			length := len(node.Children)
 			for i, cnode := range node.Children {
 				fmt.Printf("%s", strings.Repeat(deepStr, node.Deep))
-				print(cnode)
+				this.printNode(cnode)
 				if i <= length-2 {
 					fmt.Printf(commaStr)
 				}
@@ -121,7 +141,7 @@ func print(node Node) {
 			fmt.Print("{\n")
 			for i, cnode := range node.Children {
 				fmt.Printf("%s%s:", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
-				print(cnode)
+				this.printNode(cnode)
 				if i <= length-2 {
 					fmt.Printf(commaStr)
 				}
@@ -154,4 +174,13 @@ func keyToString(key reflect.Value) string {
 	default:
 		return fmt.Sprintf("%x", key.Pointer())
 	}
+}
+
+func ptrInArray(ptr uintptr, arr []uintptr) bool {
+	for _, nptr := range arr {
+		if ptr == nptr {
+			return true
+		}
+	}
+	return false
 }

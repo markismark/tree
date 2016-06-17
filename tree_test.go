@@ -2,10 +2,12 @@ package tree
 
 import "testing"
 
-type Mystruct struct {
-	Name string
-	Age  int
-	sex  string
+type People struct {
+	Name     string
+	Age      int
+	sex      string
+	Children []*People
+	Father   *People
 }
 
 func Test_print(t *testing.T) {
@@ -13,8 +15,14 @@ func Test_print(t *testing.T) {
 	// m["name"] = "jim"
 	// m["sex"] = "man"
 	// Print(m)
-	st := Mystruct{Name: "jim", Age: 44, sex: "man"}
-	Print(&st)
+	st := &People{Name: "jim", Age: 44, sex: "man"}
+	son := &People{Name: "jimson", Age: 12, sex: "boy"}
+	daughter := &People{Name: "jimdaughter", Age: 14, sex: "girl"}
+	st.Children = make([]*People, 2)
+	st.Children[0] = son
+	st.Children[1] = daughter
+	son.Father = st
+	Print(st)
 	//fmt.Printf("%#v", &st)
 	// ar := [5]int{1, 3, 7, 9, 11}
 	// Print(ar)
