@@ -9,6 +9,7 @@ type People struct {
 
 	Father   *People
 	Children []*People
+	Pro      map[string]string
 }
 
 func Test_print(t *testing.T) {
@@ -16,14 +17,21 @@ func Test_print(t *testing.T) {
 	// m["name"] = "jim"
 	// m["sex"] = "man"
 	// Print(m)
-	st := &People{Name: "jim", Age: 44, sex: "man"}
+	fa := &People{Name: "jim", Age: 44, sex: "man"}
+	fa.Pro = make(map[string]string)
+	fa.Pro["city"] = "Beijing"
 	son := &People{Name: "jimson", Age: 12, sex: "boy"}
 	daughter := &People{Name: "jimdaughter", Age: 14, sex: "girl"}
-	st.Children = make([]*People, 2)
-	st.Children[0] = son
-	st.Children[1] = daughter
-	son.Father = st
-	Print(st)
+	fa.Children = make([]*People, 2)
+	fa.Children[0] = son
+	fa.Children[1] = daughter
+	son.Father = fa
+	Print(fa)
+	son.Children = nil
+	Print(son.Children)
+	// stp := People{}
+	// stp = nil
+	// Print(stp)
 	//fmt.Printf("%#v", &st)
 	// ar := [5]int{1, 3, 7, 9, 11}
 	// Print(ar)

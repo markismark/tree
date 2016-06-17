@@ -54,8 +54,11 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 		n.FieldValue = fmt.Sprintf("%f", v)
 	case "ptr":
 		vptr := v.Pointer()
-		if ptrInArray(vptr, this.ptrs) {
-			n.FieldValue = fmt.Sprintf("%x", vptr)
+		if vptr == 0 {
+			n.FiledRealType = v.Type().String()
+			n.FieldValue = "nil"
+		} else if ptrInArray(vptr, this.ptrs) {
+			n.FieldValue = fmt.Sprintf("%x,reference to each other", vptr)
 			n.FiledRealType = v.Type().String()
 		} else {
 			this.ptrs = append(this.ptrs, vptr)
@@ -109,7 +112,7 @@ func (this *pp) print() {
 func (this *pp) printNode(node Node) {
 
 	switch node.FiledType {
-	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128", "bool":
 		fmt.Printf("%s(%s)", node.FiledType, node.FieldValue)
 	case "string":
 		fmt.Printf("%s(\"%s\")", node.FiledType, node.FieldValue)
@@ -148,7 +151,8 @@ func (this *pp) printNode(node Node) {
 			}
 			fmt.Printf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType)
 		}
-
+	default:
+		fmt.Printf("unknown type")
 	}
 }
 
