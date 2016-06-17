@@ -33,8 +33,6 @@ func Print(ob interface{}) {
 	p.dataNode = &n
 	p.print()
 	fmt.Println("")
-	fmt.Println(p.ptrs)
-
 }
 
 func (this *pp) casToNode(v reflect.Value, deep int) Node {
@@ -57,7 +55,8 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 	case "ptr":
 		vptr := v.Pointer()
 		if ptrInArray(vptr, this.ptrs) {
-
+			n.FieldValue = fmt.Sprintf("%x", vptr)
+			n.FiledRealType = v.Type().String()
 		} else {
 			this.ptrs = append(this.ptrs, vptr)
 			n.FiledRealType = v.Type().String()
@@ -118,7 +117,7 @@ func (this *pp) printNode(node Node) {
 		fmt.Printf("%s(%s)", node.FiledRealType, node.FieldValue)
 	case "array", "slice":
 		if len(node.Children) == 0 {
-			fmt.Print("[]\n")
+			fmt.Print("[]")
 		} else {
 			fmt.Print("[\n")
 			length := len(node.Children)

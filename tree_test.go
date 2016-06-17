@@ -3,11 +3,12 @@ package tree
 import "testing"
 
 type People struct {
-	Name     string
-	Age      int
-	sex      string
-	Children []*People
+	Name string
+	Age  int
+	sex  string
+
 	Father   *People
+	Children []*People
 }
 
 func Test_print(t *testing.T) {
