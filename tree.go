@@ -7,8 +7,13 @@ import (
 )
 
 var (
-	deepStr  = "  "
-	commaStr = ","
+	deepStr      = "  "
+	commaStr     = ","
+	blue         = "\033[32;1m"
+	red          = "\033[31;1m"
+	yellow       = "\033[33;1m"
+	green        = "\033[34;1m"
+	defaultColor = "\033[0m"
 )
 
 type Node struct {
@@ -58,7 +63,7 @@ func (this *pp) casToNode(v reflect.Value, deep int) *Node {
 			n.FiledRealType = v.Type().String()
 			n.FieldValue = "nil"
 		} else if ptrInArray(vptr, this.ptrs) {
-			n.FieldValue = fmt.Sprintf("%x,reference to each other", vptr)
+			n.FieldValue = fmt.Sprintf("0x%x,reference to each other", vptr)
 			n.FiledRealType = v.Type().String()
 		} else {
 			this.ptrs = append(this.ptrs, vptr)
@@ -113,9 +118,9 @@ func (this *pp) printNode(node *Node) {
 
 	switch node.FiledType {
 	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128", "bool":
-		fmt.Printf("%s(%s)", node.FiledType, node.FieldValue)
+		fmt.Printf("%s("+blue+"%s"+defaultColor+")", node.FiledType, node.FieldValue)
 	case "string":
-		fmt.Printf("%s(\"%s\")", node.FiledType, node.FieldValue)
+		fmt.Printf("%s(\""+yellow+"%s"+defaultColor+"\")", node.FiledType, node.FieldValue)
 	case "ptr":
 		fmt.Printf("%s(%s)", node.FiledRealType, node.FieldValue)
 	case "array", "slice":
@@ -142,7 +147,7 @@ func (this *pp) printNode(node *Node) {
 		} else {
 			fmt.Print("{\n")
 			for i, cnode := range node.Children {
-				fmt.Printf("%s%s:", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
+				fmt.Printf("%s"+green+"%s"+defaultColor+":", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
 				this.printNode(cnode)
 				if i <= length-2 {
 					fmt.Printf(commaStr)
@@ -173,7 +178,7 @@ func keyToString(key reflect.Value) string {
 	case "float32", "float64":
 		return fmt.Sprintf("%f", key)
 	case "ptr":
-		return fmt.Sprintf("%x", key.Pointer())
+		return fmt.Sprintf("Ox%x", key.Pointer())
 	default:
 		return fmt.Sprintf("%x", key.Pointer())
 	}
