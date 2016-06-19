@@ -12,7 +12,7 @@ var (
 )
 
 type Node struct {
-	Children      []Node
+	Children      []*Node
 	FiledType     string
 	FiledRealType string
 	FieldName     string
@@ -30,14 +30,14 @@ func Print(ob interface{}) {
 	p := &pp{}
 	p.ptrs = make([]uintptr, 0)
 	n := p.casToNode(reflect.ValueOf(ob), 1)
-	p.dataNode = &n
+	p.dataNode = n
 	p.print()
 	fmt.Println("")
 }
 
-func (this *pp) casToNode(v reflect.Value, deep int) Node {
+func (this *pp) casToNode(v reflect.Value, deep int) *Node {
 	t := v.Kind().String()
-	n := Node{FiledType: t, Deep: deep, FiledRealType: t}
+	n := &Node{FiledType: t, Deep: deep, FiledRealType: t}
 	switch t {
 	case "bool":
 		b := v.Bool()
@@ -75,7 +75,7 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 		n.FiledRealType = v.Type().String()
 		if !v.IsNil() {
 			keys := v.MapKeys()
-			n.Children = make([]Node, len(keys))
+			n.Children = make([]*Node, len(keys))
 			for i, key := range keys {
 				kv := v.MapIndex(key)
 				kn := this.casToNode(kv, deep+1)
@@ -88,7 +88,7 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 		}
 	case "struct":
 		n.FiledRealType = v.Type().String()
-		n.Children = make([]Node, v.NumField())
+		n.Children = make([]*Node, v.NumField())
 		for i := 0; i < v.NumField(); i++ {
 			f := v.Field(i)
 			kn := this.casToNode(f, deep+1)
@@ -97,7 +97,7 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 		}
 	case "array", "slice":
 		length := v.Len()
-		n.Children = make([]Node, length)
+		n.Children = make([]*Node, length)
 		for i := 0; i < length; i++ {
 			kn := this.casToNode(v.Index(i), deep+1)
 			n.Children[i] = kn
@@ -106,10 +106,10 @@ func (this *pp) casToNode(v reflect.Value, deep int) Node {
 	return n
 }
 func (this *pp) print() {
-	this.printNode(*this.dataNode)
+	this.printNode(this.dataNode)
 }
 
-func (this *pp) printNode(node Node) {
+func (this *pp) printNode(node *Node) {
 
 	switch node.FiledType {
 	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128", "bool":
