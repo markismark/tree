@@ -1,4 +1,4 @@
-#Print object when debugging
+#Print object as a tree when debugging
 
 ## How to use
 
