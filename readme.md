@@ -6,9 +6,17 @@
 ```shell
 go get github.com/Maxgis/tree
 ```
+
 ```
-import (github.com/Maxgis/tree)
-...
+import ("github.com/Maxgis/tree")
+
+tree.Print(ob)
+```
+
+##Print Example
+
+```
+
 type People struct {
     Name string
 	Age  int
@@ -33,10 +41,7 @@ func Test_print(t *testing.T) {
 	fmt.Printf("%#v\n", fa)
 }
 
-
 ```
-
-##Print Example
 
 ```shell
 {
