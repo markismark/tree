@@ -25,6 +25,6 @@ func Test_print(t *testing.T) {
 	fa.Children[0] = son
 	fa.Children[1] = daughter
 	son.Father = fa
-	Print(fa)
-	fmt.Printf("%#v\n", fa)
+	//Print(fa)
+	fmt.Println(Sprint(fa))
 }

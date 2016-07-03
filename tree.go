@@ -29,15 +29,21 @@ type Node struct {
 type pp struct {
 	dataNode *Node
 	ptrs     []uintptr
+	buffer   string
 }
 
 func Print(ob interface{}) {
+	str := Sprint(ob)
+	fmt.Println(str)
+}
+
+func Sprint(ob interface{}) string {
 	p := &pp{}
 	p.ptrs = make([]uintptr, 0)
 	n := p.casToNode(reflect.ValueOf(ob), 1)
 	p.dataNode = n
-	p.print()
-	fmt.Println("")
+	p.sprint()
+	return p.buffer
 }
 
 func (this *pp) casToNode(v reflect.Value, deep int) *Node {
@@ -110,54 +116,58 @@ func (this *pp) casToNode(v reflect.Value, deep int) *Node {
 	}
 	return n
 }
-func (this *pp) print() {
+func (this *pp) sprint() {
 	this.printNode(this.dataNode)
+}
+
+func (this *pp) write(str string) {
+	this.buffer = this.buffer + str
 }
 
 func (this *pp) printNode(node *Node) {
 
 	switch node.FiledType {
 	case "int", "int8", "int16", "int32", "int64", "uint", "uint16", "uint8", "uint32", "uint64", "uintptr", "float32", "float64", "complex64", "complex128", "bool":
-		fmt.Printf("%s("+blue+"%s"+defaultColor+")", node.FiledType, node.FieldValue)
+		this.write(fmt.Sprintf("%s("+blue+"%s"+defaultColor+")", node.FiledType, node.FieldValue))
 	case "string":
-		fmt.Printf("%s(\""+yellow+"%s"+defaultColor+"\")", node.FiledType, node.FieldValue)
+		this.write(fmt.Sprintf("%s(\""+yellow+"%s"+defaultColor+"\")", node.FiledType, node.FieldValue))
 	case "ptr":
-		fmt.Printf("%s(%s)", node.FiledRealType, node.FieldValue)
+		this.write(fmt.Sprintf("%s(%s)", node.FiledRealType, node.FieldValue))
 	case "array", "slice":
 		if len(node.Children) == 0 {
-			fmt.Print("[]")
+			this.write(fmt.Sprintf("[]"))
 		} else {
-			fmt.Print("[\n")
+			this.write(fmt.Sprintf("[\n"))
 			length := len(node.Children)
 			for i, cnode := range node.Children {
-				fmt.Printf("%s", strings.Repeat(deepStr, node.Deep))
+				this.write(fmt.Sprintf("%s", strings.Repeat(deepStr, node.Deep)))
 				this.printNode(cnode)
 				if i <= length-2 {
-					fmt.Printf(commaStr)
+					this.write(fmt.Sprintf(commaStr))
 				}
-				fmt.Printf("\n")
+				this.write(fmt.Sprintf("\n"))
 			}
-			fmt.Printf("%s]", strings.Repeat(deepStr, node.Deep-1))
+			this.write(fmt.Sprintf("%s]", strings.Repeat(deepStr, node.Deep-1)))
 		}
 	case "struct", "map":
 
 		length := len(node.Children)
 		if length == 0 {
-			fmt.Printf("{}(%s)", node.FiledRealType)
+			this.write(fmt.Sprintf("{}(%s)", node.FiledRealType))
 		} else {
-			fmt.Print("{\n")
+			this.write(fmt.Sprintf("{\n"))
 			for i, cnode := range node.Children {
-				fmt.Printf("%s"+green+"%s"+defaultColor+":", strings.Repeat(deepStr, node.Deep), cnode.FieldName)
+				this.write(fmt.Sprintf("%s"+green+"%s"+defaultColor+":", strings.Repeat(deepStr, node.Deep), cnode.FieldName))
 				this.printNode(cnode)
 				if i <= length-2 {
-					fmt.Printf(commaStr)
+					this.write(fmt.Sprintf(commaStr))
 				}
-				fmt.Printf("\n")
+				this.write(fmt.Sprintf("\n"))
 			}
-			fmt.Printf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType)
+			this.write(fmt.Sprintf("%s}(%s)", strings.Repeat(deepStr, node.Deep-1), node.FiledRealType))
 		}
 	default:
-		fmt.Printf("unknown type")
+		this.write(fmt.Sprintf("unknown type"))
 	}
 }
 
